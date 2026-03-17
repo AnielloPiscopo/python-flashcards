@@ -1,0 +1,41 @@
+# course config files
+*.yaml
+
+# gradle
+.gradle/
+build
+
+# idea config
+.idea
+
+# old stages
+/Dominoes/*
+!/Dominoes/task/
+/Dominoes/task/*
+!/Dominoes/task/dominoes
+
+# Hyperskill
+.hyperskill/
+
+# IDE
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Java
+*.class
+
+# Logs
+*.log
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+
+# Project data
+data/output.txt
