@@ -1,5 +1,4 @@
-# Flashcards (Python). Stage 3/7
-## Make it your own
+# Make it your own
 
 ## Description
 
