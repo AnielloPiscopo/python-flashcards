@@ -1,6 +1,6 @@
-from data_io import read_card_info, read_num_of_cards, read_user_answer
+from data_io import read_term_card, read_definition_card, read_num_of_cards, read_user_answer
 from exceptions import FlashcardDuplicateError
-from models import FlashcardSet
+from models import FlashcardSet, Flashcard
 
 __all__ = ['play']
 
@@ -11,7 +11,13 @@ def _get_flashcards(num_cards: int) -> FlashcardSet:
     for i in range(1, num_cards + 1):
         while True:
             try:
-                cards.add(read_card_info(i))
+                term: str = read_term_card(i)
+                cards.validate_term(term)
+
+                definition: str = read_definition_card(i)
+                cards.validate_definition(definition)
+
+                cards.add(Flashcard(term, definition))
                 break
             except FlashcardDuplicateError as e:
                 print(e)

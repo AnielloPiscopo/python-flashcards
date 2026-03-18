@@ -18,6 +18,21 @@ class FlashcardSet(set):
                 raise FlashcardDuplicateError(False, item.definition)
         super().add(item)
 
+    def validate_term(self, term: str) -> None:
+        for existing in self:
+            if existing.term == term:
+                raise FlashcardDuplicateError(True, term)
+
+    def validate_definition(self, definition: str) -> None:
+        for existing in self:
+            if existing.definition == definition:
+                raise FlashcardDuplicateError(False, definition)
+
+    def add_step_by_step(self, term: str, definition: str) -> None:
+        self.validate_term(term)
+        self.validate_definition(definition)
+        super().add(Flashcard(term, definition))
+
     def check_answer(self, correct_card: Flashcard, user_answer: str) -> str:
         correct_term: str = correct_card.term
         correct_definition: str = correct_card.definition
