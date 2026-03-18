@@ -2,12 +2,13 @@ from typing import Optional
 
 __all__ = ["OutOfRangeError"]
 
+
 class OutOfRangeError(ValueError):
     def __init__(
-        self,
-        value: int,
-        min_value: int = 1,
-        max_value: Optional[int] = None,
+            self,
+            value: int,
+            min_value: int = 1,
+            max_value: Optional[int] = None,
     ):
         self.value = value
         self.min_value = min_value
