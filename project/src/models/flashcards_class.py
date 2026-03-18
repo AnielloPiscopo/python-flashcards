@@ -9,14 +9,14 @@ class Flashcard:
     term: str
     definition: str
 
-class FlashcardSet(set):
+class FlashcardSet(list[Flashcard]):
     def add(self, item: Flashcard):
         for existing in self:
             if existing.term == item.term:
                 raise FlashcardDuplicateError(True, item.term)
             if existing.definition == item.definition:
                 raise FlashcardDuplicateError(False, item.definition)
-        super().add(item)
+        super().append(item)
 
     def validate_term(self, term: str) -> None:
         for existing in self:
@@ -31,7 +31,7 @@ class FlashcardSet(set):
     def add_step_by_step(self, term: str, definition: str) -> None:
         self.validate_term(term)
         self.validate_definition(definition)
-        super().add(Flashcard(term, definition))
+        super().append(Flashcard(term, definition))
 
     def check_answer(self, correct_card: Flashcard, user_answer: str) -> str:
         correct_term: str = correct_card.term
