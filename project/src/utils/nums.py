@@ -4,11 +4,12 @@ from exceptions import OutOfRangeError
 
 __all__ = ['str_to_int']
 
+
 def str_to_int(
-    s: str,
-    min_num: int = 1,
-    max_num: Optional[int] = None,
-    inclusive: bool = True,
+        s: str,
+        min_num: int = 1,
+        max_num: Optional[int] = None,
+        inclusive: bool = True,
 ) -> int:
     try:
         value = int(s)

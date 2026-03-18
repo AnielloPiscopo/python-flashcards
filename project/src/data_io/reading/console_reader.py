@@ -1,4 +1,4 @@
-from utils.io import read_values, read_int_num
+from utils import read_values, read_int_num
 
 from models import Flashcard
 
