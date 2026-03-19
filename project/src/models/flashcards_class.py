@@ -39,7 +39,7 @@ class FlashcardSet(list[Flashcard]):
 
         for card in self:
             if card.term == correct_term and card.definition == user_answer:
-                return "Correct"
+                return "Correct!"
             elif card.term != correct_term and card.definition == user_answer:
                 return (self._build_base_wrong_answer(correct_definition) +
                         f", but your definition is correct for \"{card.term}\"")
