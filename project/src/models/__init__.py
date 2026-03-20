@@ -1,3 +1,3 @@
-from models.flashcards_class import Flashcard, FlashcardSet
+from models.flashcard import Flashcard, FlashcardSet, FlashcardActions
 
-__all__ = ['Flashcard', 'FlashcardSet']
+__all__ = ['Flashcard', 'FlashcardSet', 'FlashcardActions']

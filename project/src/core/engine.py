@@ -1,46 +1,103 @@
 from utils import read_values
-from data_io import read_num_of_cards, read_user_answer
-from exceptions import FlashcardDuplicateError
-from models import FlashcardSet, Flashcard
+from data_io import (
+    read_user_answer,
+    read_user_action,
+    read_card_to_remove,
+    read_num_of_cards,
+    write_flashcards,
+    read_file_name,
+    read_flashcards
+)
+from exceptions import FlashcardDuplicateError, FlashcardNotFoundError
+from models import FlashcardSet, Flashcard, FlashcardActions
 
 __all__ = ['play']
 
+def _add(cards: FlashcardSet) -> None:
+    print(f"The card:")
 
-def _get_flashcards(num_cards: int) -> FlashcardSet:
-    cards: FlashcardSet = FlashcardSet()
+    while True:
+        try:
+            term = read_values()
+            cards.validate_term(term)
+            break
+        except FlashcardDuplicateError as e:
+            print(e)
 
-    for i in range(1, num_cards + 1):
-        term: str = ""
-        definition: str = ""
+    print(f"The definition of the card:")
 
-        print(f"The term for card #{i}:")
-        while True:
-            try:
-                term = read_values()
-                cards.validate_term(term)
-                break
-            except FlashcardDuplicateError as e:
-                print(e)
+    while True:
+        try:
+            definition = read_values()
+            cards.validate_definition(definition)
+            break
+        except FlashcardDuplicateError as e:
+            print(e)
 
-        print(f"The definition for card #{i}:")
-        while True:
-            try:
-                definition = read_values()
-                cards.validate_definition(definition)
-                break
-            except FlashcardDuplicateError as e:
-                print(e)
+    cards.add(Flashcard(term, definition))
+    print(f"The pair (\"{term}\":\"{definition}\") has been added.")
 
-        cards.add(Flashcard(term, definition))
+def _remove(cards: FlashcardSet) -> None:
+    card_term: str = read_card_to_remove()
 
-    return cards
+    try:
+        cards.remove(card_term)
+    except FlashcardNotFoundError as e:
+        print(e)
+    else:
+        print("The card has been removed.")
 
-def _study(cards: FlashcardSet) -> None:
-    for card in cards:
+def _ask(cards: FlashcardSet) -> None:
+    times: int = read_num_of_cards()
+
+    for _ in range(times):
+        card: Flashcard = cards.get_rnd_card()
         user_answer: str = read_user_answer(card.term)
         print(cards.check_answer(card, user_answer))
 
+def _import(cards: FlashcardSet) -> None:
+    file_name: str = read_file_name()
+
+    try:
+        new_cards: FlashcardSet = read_flashcards(file_name)
+    except FileNotFoundError as e:
+        print(e)
+    else:
+        cards.merge(new_cards)
+        new_cards_num: int = len(new_cards)
+        print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been loaded.")
+
+def _export(cards: FlashcardSet) -> None:
+    file_name: str = read_file_name()
+
+    try:
+        new_cards_num: int = write_flashcards(file_name, cards)
+    except FileNotFoundError as e:
+        print(e)
+    else:
+        print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
+
 def play() -> None:
-    num_cards: int = read_num_of_cards()
-    flashcards: FlashcardSet = _get_flashcards(num_cards)
-    _study(flashcards)
+    cards: FlashcardSet = FlashcardSet()
+
+    while True:
+        try:
+            user_action: FlashcardActions = read_user_action()
+        except ValueError:
+            print("Invalid action")
+        else:
+            match user_action:
+                case FlashcardActions.ADD:
+                    _add(cards)
+                case FlashcardActions.REMOVE:
+                    _remove(cards)
+                case FlashcardActions.ASK:
+                    _ask(cards)
+                case FlashcardActions.IMPORT:
+                    _import(cards)
+                case FlashcardActions.EXPORT:
+                    _export(cards)
+                case FlashcardActions.EXIT:
+                    print("Bye bye!")
+                    break
+        print()
