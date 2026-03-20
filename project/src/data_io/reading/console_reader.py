@@ -6,6 +6,7 @@ __all__ = [
     'read_user_answer_from_console',
     'read_user_action_from_console',
     'read_card_to_remove_from_console',
+    'read_file_name_from_console',
 ]
 
 
@@ -21,6 +22,9 @@ def read_user_action_from_console() -> FlashcardActions:
     return FlashcardActions(read_values("Input the action (" +
                                         to_str(FlashcardActions.values_tuple(), ", ") +
                                         "):\n"))
+
+def read_file_name_from_console() -> str:
+    return read_values(f"File name:\n")
 
 
 def read_card_to_remove_from_console() -> str:

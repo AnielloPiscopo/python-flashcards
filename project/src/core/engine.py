@@ -1,10 +1,17 @@
 from utils import read_values
-from data_io import read_user_answer, read_user_action, read_card_to_remove, read_num_of_cards
+from data_io import (
+    read_user_answer,
+    read_user_action,
+    read_card_to_remove,
+    read_num_of_cards,
+    write_flashcards,
+    read_file_name,
+    read_flashcards
+)
 from exceptions import FlashcardDuplicateError
 from models import FlashcardSet, Flashcard, FlashcardActions
 
 __all__ = ['play']
-
 
 def _add(cards: FlashcardSet) -> None:
     print(f"The card:")
@@ -41,11 +48,23 @@ def _ask(cards: FlashcardSet) -> None:
         user_answer: str = read_user_answer(card.term)
         print(cards.check_answer(card, user_answer))
 
-def _import() -> None:
-    return None
+def _import(cards: FlashcardSet) -> None:
+    try:
+        file_name: str = read_file_name()
+        new_cards: FlashcardSet = read_flashcards(file_name)
+        cards.extend(new_cards)
+        new_cards_num: int = len(new_cards)
+        print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been loaded.")
+    except FileNotFoundError as e:
+        print(e)
 
-def _export() -> None:
-    return None
+def _export(cards: FlashcardSet) -> None:
+    try:
+        file_name: str = read_file_name()
+        new_cards_num: int = write_flashcards(file_name, cards)
+        print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
+    except FileNotFoundError as e:
+        print(e)
 
 def play() -> None:
     cards: FlashcardSet = FlashcardSet()
@@ -64,8 +83,9 @@ def play() -> None:
                 case FlashcardActions.ASK:
                     _ask(cards)
                 case FlashcardActions.IMPORT:
-                    _import()
+                    _import(cards)
                 case FlashcardActions.EXPORT:
-                    _export()
+                    _export(cards)
                 case FlashcardActions.EXIT:
+                    print("Bye bye!")
                     break
