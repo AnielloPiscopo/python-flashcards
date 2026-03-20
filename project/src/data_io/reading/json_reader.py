@@ -10,6 +10,8 @@ def read_flashcards_from_json(file_name: str) -> FlashcardSet:
 
     if not check_presence(path):
         raise FileNotFoundError(f"File not found")
+
+    INPUT_DIR.mkdir(parents=True, exist_ok=True)
     with open(path, "r") as f:
         data = json.load(f)
     flashcards = FlashcardSet()

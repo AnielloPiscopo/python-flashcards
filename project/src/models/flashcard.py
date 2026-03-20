@@ -57,6 +57,17 @@ class FlashcardSet(list[Flashcard]):
         self.validate_definition(definition)
         super().append(Flashcard(term, definition))
 
+    def merge(self, other: 'FlashcardSet') -> int:
+        updated = 0
+        for card in other:
+            index = next((i for i, c in enumerate(self) if c.term == card.term), None)
+            if index is not None:
+                self[index] = card
+                updated += 1
+            else:
+                super().append(card)
+        return updated
+
     def check_answer(self, correct_card: Flashcard, user_answer: str) -> str:
         correct_term: str = correct_card.term
         correct_definition: str = correct_card.definition

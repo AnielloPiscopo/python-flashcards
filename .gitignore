@@ -38,4 +38,4 @@ dist/
 build/
 
 # Project data
-data/output.txt
+*resources/data/output.txt

@@ -8,7 +8,7 @@ from data_io import (
     read_file_name,
     read_flashcards
 )
-from exceptions import FlashcardDuplicateError
+from exceptions import FlashcardDuplicateError, FlashcardNotFoundError
 from models import FlashcardSet, Flashcard, FlashcardActions
 
 __all__ = ['play']
@@ -35,10 +35,17 @@ def _add(cards: FlashcardSet) -> None:
             print(e)
 
     cards.add(Flashcard(term, definition))
+    print(f"The pair (\"{term}\":\"{definition}\") has been added.")
 
 def _remove(cards: FlashcardSet) -> None:
     card_term: str = read_card_to_remove()
-    cards.remove(card_term)
+
+    try:
+        cards.remove(card_term)
+    except FlashcardNotFoundError as e:
+        print(e)
+    else:
+        print("The card has been removed.")
 
 def _ask(cards: FlashcardSet) -> None:
     times: int = read_num_of_cards()
@@ -49,22 +56,26 @@ def _ask(cards: FlashcardSet) -> None:
         print(cards.check_answer(card, user_answer))
 
 def _import(cards: FlashcardSet) -> None:
+    file_name: str = read_file_name()
+
     try:
-        file_name: str = read_file_name()
         new_cards: FlashcardSet = read_flashcards(file_name)
-        cards.extend(new_cards)
+    except FileNotFoundError as e:
+        print(e)
+    else:
+        cards.merge(new_cards)
         new_cards_num: int = len(new_cards)
         print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been loaded.")
-    except FileNotFoundError as e:
-        print(e)
 
 def _export(cards: FlashcardSet) -> None:
+    file_name: str = read_file_name()
+
     try:
-        file_name: str = read_file_name()
         new_cards_num: int = write_flashcards(file_name, cards)
-        print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
     except FileNotFoundError as e:
         print(e)
+    else:
+        print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
 
 def play() -> None:
     cards: FlashcardSet = FlashcardSet()
@@ -89,3 +100,4 @@ def play() -> None:
                 case FlashcardActions.EXIT:
                     print("Bye bye!")
                     break
+        print()
