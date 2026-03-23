@@ -50,6 +50,9 @@ class FlashcardSet(list[Flashcard]):
         return choice(self)
 
     def get_most_difficult(self) -> list[Flashcard]:
+        if len(self) == 0:
+            raise FlashcardWithNoMistakesError()
+
         max_mistakes: int = max(c.mistakes for c in self)
 
         if max_mistakes == 0:
@@ -104,3 +107,7 @@ class FlashcardSet(list[Flashcard]):
 
     def _build_base_wrong_answer(self, definition: str) -> str:
         return f"Wrong. The right answer is \"{definition}\""
+
+    @staticmethod
+    def to_terms(cards: list['Flashcard']) -> list[str]:
+        return [c.term for c in cards]
