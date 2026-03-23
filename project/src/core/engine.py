@@ -89,12 +89,14 @@ def _show_card_with_most_mistakes(cards: FlashcardSet) -> None:
     else:
         msg: str = \
             f"The hardest card{
-            " is \"" + most_difficult_cards[0].term + "\". " if len(most_difficult_cards) == 1
-            else "s are \"" + to_str(FlashcardSet.to_terms(most_difficult_cards), "\", \"") + "\". "
+            " is \"" + most_difficult_cards[0].term + "\"." if len(most_difficult_cards) == 1
+            else "s are \"" + to_str(FlashcardSet.to_terms(most_difficult_cards), "\", \"") + "\"."
             } You have {
             most_difficult_cards[0].mistakes
             } {
             "error" if most_difficult_cards[0].mistakes == 1 else "errors"
+            } answering {
+            "it" if len(most_difficult_cards) == 1 else "them"
             }."
 
         console.print(msg)
