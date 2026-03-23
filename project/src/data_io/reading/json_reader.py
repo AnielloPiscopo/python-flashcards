@@ -16,5 +16,5 @@ def read_flashcards_from_json(file_name: str) -> FlashcardSet:
         data = json.load(f)
     flashcards = FlashcardSet()
     for item in data:
-        flashcards.add(Flashcard(item["term"], item["definition"]))
+        flashcards.add(Flashcard(item["term"], item["definition"], item["mistakes"]))
     return flashcards
