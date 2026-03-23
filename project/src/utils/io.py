@@ -1,7 +1,7 @@
 from typing import Optional
 
 from utils.nums import str_to_int
-from utils.console import console
+from ui import console
 
 __all__ = ["read_values", "read_int_num"]
 
