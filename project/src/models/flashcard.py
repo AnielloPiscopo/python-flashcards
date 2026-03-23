@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 from enum import Enum
 from random import choice
 
-from exceptions import FlashcardDuplicateError, FlashcardNotFoundError
+from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
 
 __all__ = ['Flashcard', 'FlashcardSet', 'FlashcardActions']
 
@@ -13,15 +12,23 @@ class FlashcardActions(Enum):
     EXPORT = "export"
     ASK = "ask"
     EXIT = "exit"
+    LOG = "log"
+    HARDEST_CARD = "hardest card"
+    RESET_STATS = "reset stats"
 
     @classmethod
     def values_tuple(cls) -> tuple[str, ...]:
         return tuple(item.value for item in cls)
 
-@dataclass(frozen=True)
 class Flashcard:
     term: str
     definition: str
+    mistakes: int
+
+    def __init__(self, term: str, definition: str, mistakes: int = 0) -> None:
+        self.term = term
+        self.definition = definition
+        self.mistakes = mistakes
 
 class FlashcardSet(list[Flashcard]):
     def add(self, item: Flashcard):
@@ -41,6 +48,21 @@ class FlashcardSet(list[Flashcard]):
 
     def get_rnd_card(self) -> Flashcard:
         return choice(self)
+
+    def get_most_difficult(self) -> list[Flashcard]:
+        if len(self) == 0:
+            raise FlashcardWithNoMistakesError()
+
+        max_mistakes: int = max(c.mistakes for c in self)
+
+        if max_mistakes == 0:
+            raise FlashcardWithNoMistakesError()
+        else:
+            return [c for c in self if c.mistakes == max_mistakes]
+
+    def reset_mistakes(self) -> None:
+        for card in self:
+            card.mistakes = 0
 
     def validate_term(self, term: str) -> None:
         for existing in self:
@@ -76,10 +98,16 @@ class FlashcardSet(list[Flashcard]):
             if card.term == correct_term and card.definition == user_answer:
                 return "Correct!"
             elif card.term != correct_term and card.definition == user_answer:
+                correct_card.mistakes += 1
                 return (self._build_base_wrong_answer(correct_definition) +
                         f", but your definition is correct for \"{card.term}\"")
 
+        correct_card.mistakes += 1
         return self._build_base_wrong_answer(correct_definition) + "."
 
     def _build_base_wrong_answer(self, definition: str) -> str:
         return f"Wrong. The right answer is \"{definition}\""
+
+    @staticmethod
+    def to_terms(cards: list['Flashcard']) -> list[str]:
+        return [c.term for c in cards]

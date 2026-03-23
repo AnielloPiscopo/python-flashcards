@@ -1,4 +1,4 @@
-__all__ = ['FlashcardDuplicateError', 'FlashcardNotFoundError']
+__all__ = ['FlashcardDuplicateError', 'FlashcardNotFoundError', 'FlashcardWithNoMistakesError']
 
 class FlashcardDuplicateError(Exception):
     is_term: bool
@@ -25,3 +25,12 @@ class FlashcardNotFoundError(Exception):
     @staticmethod
     def _build_message(value: str) -> str:
         return f"Can't remove \"{value}\": there is no such card."
+
+class FlashcardWithNoMistakesError(Exception):
+    def __init__(self):
+        message = self._build_message()
+        super().__init__(message)
+
+    @staticmethod
+    def _build_message() -> str:
+        return "There are no cards with errors."

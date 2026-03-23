@@ -6,7 +6,7 @@ from data_io.reading import (
     read_file_name,
     read_flashcards
 )
-from data_io.writing import write_flashcards
+from data_io.writing import write_flashcards, write_log
 
 __all__ = [
     'read_num_of_cards',
@@ -15,5 +15,6 @@ __all__ = [
     'read_card_to_remove',
     'read_file_name',
     'read_flashcards',
-    'write_flashcards'
+    'write_flashcards',
+    'write_log'
 ]
