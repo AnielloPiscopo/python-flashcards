@@ -1,5 +1,4 @@
-# Flashcards (Python). Stage 7/7
-## IMPORTant
+# IMPORTant
 
 ## Description
 
