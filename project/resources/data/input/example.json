@@ -1,0 +1,17 @@
+[
+  {
+    "term": "France",
+    "definition": "Paris",
+    "mistakes": 0
+  },
+  {
+    "term": "Japan",
+    "definition": "Tokyo",
+    "mistakes": 0
+  },
+  {
+    "term": "Russia",
+    "definition": "Moscow",
+    "mistakes": 1
+  }
+]
