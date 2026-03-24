@@ -1,14 +1,14 @@
 import json
-from utils import check_presence
+from pathlib import Path
 from data_io.paths import INPUT_DIR
 from models import FlashcardSet, Flashcard
 
 __all__=["read_flashcards_from_json"]
 
 def read_flashcards_from_json(file_name: str) -> FlashcardSet:
-    path: str = INPUT_DIR / file_name
+    path: Path = INPUT_DIR / file_name
 
-    if not check_presence(path):
+    if not Path(path).exists():
         raise FileNotFoundError(f"File not found")
 
     INPUT_DIR.mkdir(parents=True, exist_ok=True)

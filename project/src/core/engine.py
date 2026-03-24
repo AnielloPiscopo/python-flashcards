@@ -1,6 +1,6 @@
 from typing import Optional
 
-from utils import read_values, console, to_str
+from utils import read_values
 from data_io import (
     read_user_answer,
     read_user_action,
@@ -14,6 +14,7 @@ from data_io import (
 from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
 from models import FlashcardSet, Flashcard, FlashcardActions, FilePathParams
 from cli import parse_flashcards_params
+from ui import console
 
 __all__ = ['play']
 
@@ -44,7 +45,7 @@ def _play_in_console(cards: FlashcardSet) -> None:
                 case FlashcardActions.HARDEST_CARD:
                     _show_card_with_most_mistakes(cards)
                 case FlashcardActions.RESET_STATS:
-                    _resets_stats(cards)
+                    _reset_stats(cards)
 
         console.print()
 
@@ -135,7 +136,7 @@ def _show_card_with_most_mistakes(cards: FlashcardSet) -> None:
         msg: str = \
             f"The hardest card{
             " is \"" + most_difficult_cards[0].term + "\"." if len(most_difficult_cards) == 1
-            else "s are \"" + to_str(FlashcardSet.to_terms(most_difficult_cards), "\", \"") + "\"."
+            else "s are \"" + '", "'.join(c.term for c in most_difficult_cards) + "\"."
             } You have {
             most_difficult_cards[0].mistakes
             } {
@@ -147,7 +148,7 @@ def _show_card_with_most_mistakes(cards: FlashcardSet) -> None:
         console.print(msg)
 
 
-def _resets_stats(cards: FlashcardSet) -> None:
+def _reset_stats(cards: FlashcardSet) -> None:
     cards.reset_mistakes()
     console.print("Card statistics have been reset.")
 
