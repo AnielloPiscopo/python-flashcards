@@ -1,4 +1,4 @@
-from utils import read_values, read_int_num, to_str
+from utils import read_values, read_int_num
 from models import FlashcardActions
 
 __all__ = [
@@ -20,7 +20,7 @@ def read_user_answer_from_console(term: str) -> str:
 
 def read_user_action_from_console() -> FlashcardActions:
     return FlashcardActions(read_values("Input the action (" +
-                                        to_str(FlashcardActions.values_tuple(), ", ") +
+                                        ", ".join(FlashcardActions.values_tuple()) +
                                         "):\n"))
 
 def read_file_name_from_console() -> str:

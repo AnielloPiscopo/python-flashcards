@@ -5,6 +5,7 @@ from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, Flashcar
 
 __all__ = ['Flashcard', 'FlashcardSet', 'FlashcardActions']
 
+
 class FlashcardActions(Enum):
     ADD = "add"
     REMOVE = "remove"
@@ -20,6 +21,7 @@ class FlashcardActions(Enum):
     def values_tuple(cls) -> tuple[str, ...]:
         return tuple(item.value for item in cls)
 
+
 class Flashcard:
     term: str
     definition: str
@@ -30,18 +32,21 @@ class Flashcard:
         self.definition = definition
         self.mistakes = mistakes
 
+    def __str__(self) -> str:
+        return f'"{self.term}": "{self.definition}"'
+
+    def __repr__(self) -> str:
+        return f"Flashcard(term={self.term!r}, definition={self.definition!r}, mistakes={self.mistakes})"
+
+
 class FlashcardSet(list[Flashcard]):
-    def add(self, item: Flashcard):
-        for existing in self:
-            if existing.term == item.term:
-                raise FlashcardDuplicateError(True, item.term)
-            if existing.definition == item.definition:
-                raise FlashcardDuplicateError(False, item.definition)
+    def add(self, item: Flashcard) -> None:
+        self.validate_term(item.term)
+        self.validate_definition(item.definition)
         super().append(item)
 
     def remove(self, term: str) -> None:
         card = next((c for c in self if c.term == term), None)
-
         if card is None:
             raise FlashcardNotFoundError(term)
         super().remove(card)
@@ -50,64 +55,51 @@ class FlashcardSet(list[Flashcard]):
         return choice(self)
 
     def get_most_difficult(self) -> list[Flashcard]:
-        if len(self) == 0:
+        if not self:
             raise FlashcardWithNoMistakesError()
-
-        max_mistakes: int = max(c.mistakes for c in self)
-
+        max_mistakes = max(c.mistakes for c in self)
         if max_mistakes == 0:
             raise FlashcardWithNoMistakesError()
-        else:
-            return [c for c in self if c.mistakes == max_mistakes]
+        return [c for c in self if c.mistakes == max_mistakes]
 
     def reset_mistakes(self) -> None:
         for card in self:
             card.mistakes = 0
 
     def validate_term(self, term: str) -> None:
-        for existing in self:
-            if existing.term == term:
-                raise FlashcardDuplicateError(True, term)
+        if any(c.term == term for c in self):
+            raise FlashcardDuplicateError(True, term)
 
     def validate_definition(self, definition: str) -> None:
-        for existing in self:
-            if existing.definition == definition:
-                raise FlashcardDuplicateError(False, definition)
+        if any(c.definition == definition for c in self):
+            raise FlashcardDuplicateError(False, definition)
 
-    def add_step_by_step(self, term: str, definition: str) -> None:
-        self.validate_term(term)
-        self.validate_definition(definition)
-        super().append(Flashcard(term, definition))
-
-    def merge(self, other: 'FlashcardSet') -> int:
-        updated = 0
+    def merge(self, other: 'FlashcardSet') -> None:
         for card in other:
             index = next((i for i, c in enumerate(self) if c.term == card.term), None)
             if index is not None:
                 self[index] = card
-                updated += 1
             else:
                 super().append(card)
-        return updated
 
     def check_answer(self, correct_card: Flashcard, user_answer: str) -> str:
-        correct_term: str = correct_card.term
-        correct_definition: str = correct_card.definition
-
-        for card in self:
-            if card.term == correct_term and card.definition == user_answer:
-                return "Correct!"
-            elif card.term != correct_term and card.definition == user_answer:
-                correct_card.mistakes += 1
-                return (self._build_base_wrong_answer(correct_definition) +
-                        f", but your definition is correct for \"{card.term}\"")
+        if correct_card.definition == user_answer:
+            return "Correct!"
 
         correct_card.mistakes += 1
-        return self._build_base_wrong_answer(correct_definition) + "."
+        base = f'Wrong. The right answer is "{correct_card.definition}"'
+        other = next((c for c in self if c.definition == user_answer and c.term != correct_card.term), None)
 
-    def _build_base_wrong_answer(self, definition: str) -> str:
-        return f"Wrong. The right answer is \"{definition}\""
+        if other:
+            return f'{base}, but your definition is correct for "{other.term}"'
+        return f'{base}.'
 
     @staticmethod
     def to_terms(cards: list['Flashcard']) -> list[str]:
         return [c.term for c in cards]
+
+    def __str__(self) -> str:
+        return f"FlashcardSet({len(self)} cards)"
+
+    def __repr__(self) -> str:
+        return f"FlashcardSet({list.__repr__(self)})"

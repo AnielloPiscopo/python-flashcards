@@ -1,5 +1,5 @@
 from data_io.paths import OUTPUT_DIR
-from utils import console
+from ui import console
 
 __all__ = ["write_log_to_txt"]
 
