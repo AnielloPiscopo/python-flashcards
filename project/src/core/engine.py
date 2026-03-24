@@ -1,3 +1,5 @@
+from typing import Optional
+
 from utils import read_values, console, to_str
 from data_io import (
     read_user_answer,
@@ -14,6 +16,7 @@ from models import FlashcardSet, Flashcard, FlashcardActions, FilePathParams
 from cli import parse_flashcards_params
 
 __all__ = ['play']
+
 
 def _play_in_console(cards: FlashcardSet) -> None:
     while True:
@@ -91,8 +94,9 @@ def _ask(cards: FlashcardSet) -> None:
         console.print(cards.check_answer(card, user_answer))
 
 
-def _import(cards: FlashcardSet) -> None:
-    file_name: str = read_file_name()
+def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
+    if file_name is None:
+        file_name = read_file_name()
 
     try:
         new_cards: FlashcardSet = read_flashcards(file_name)
@@ -104,8 +108,10 @@ def _import(cards: FlashcardSet) -> None:
         console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been loaded.")
 
 
-def _export(cards: FlashcardSet) -> None:
-    file_name: str = read_file_name()
+def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
+    if file_name is None:
+        file_name = read_file_name()
+
     new_cards_num: int = write_flashcards(file_name, cards)
     console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
 
@@ -149,11 +155,13 @@ def _resets_stats(cards: FlashcardSet) -> None:
 def play() -> None:
     cards: FlashcardSet = FlashcardSet()
     params: FilePathParams = parse_flashcards_params()
+    import_file_name: str = params.import_file_name
+    export_file_name: str = params.export_file_name
 
-    if params.import_file_name:
-        _import(cards)
+    if import_file_name:
+        _import(cards, import_file_name)
 
     _play_in_console(cards)
 
-    if params.export_file_name:
-        _export(cards)
+    if export_file_name:
+        _export(cards, export_file_name)

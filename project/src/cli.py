@@ -9,7 +9,7 @@ __all__ = ['parse_flashcards_params']
 
 class FlashcardParamsArgPars(Enum):
     IMPORT = "--import_from"
-    EXPORT = "--export_from"
+    EXPORT = "--export_to"
 
     @classmethod
     def values_tuple(cls) -> tuple[str, ...]:
@@ -40,4 +40,4 @@ def parse_flashcards_params() -> FilePathParams:
 
     args: Namespace = _get_args(parser)
 
-    return FilePathParams(import_file_name=args.import_from, export_file_name=args.export_from)
+    return FilePathParams(import_file_name=args.import_from, export_file_name=args.export_to)
