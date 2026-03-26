@@ -21,7 +21,7 @@ def read_bool(input_txt: str = "") -> bool:
     elif value in ["false", "no", "n"]:
         return False
     else:
-        raise ValueError("Invalid choice")
+        raise ValueError("Invalid choice.")
 
 def get_base_obj_quantity(count: int, obj: str) -> str:
     return f"{count} {obj if count == 1 else obj + "s"}"
