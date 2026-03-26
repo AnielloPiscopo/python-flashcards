@@ -85,16 +85,24 @@ class FlashcardSet(list[Flashcard]):
             else:
                 super().append(card)
 
-    def check_answer(self, correct_card: Flashcard, user_answer: str) -> tuple[bool, str]:
-        if correct_card.definition == user_answer:
+    def check_answer(self, correct_card: Flashcard, user_answer: str, reverse: bool = False) -> tuple[bool, str]:
+        correct = correct_card.term if reverse else correct_card.definition
+
+        if correct == user_answer:
             return True, "Correct!"
 
         correct_card.mistakes += 1
-        base = f'Wrong. The right answer is "{correct_card.definition}"'
-        other = next((c for c in self if c.definition == user_answer and c.term != correct_card.term), None)
+        base = f'Wrong. The right answer is "{correct}"'
 
-        if other:
-            return False, f'{base}, but your definition is correct for "{other.term}"'
+        if reverse:
+            other = next((c for c in self if c.term == user_answer and c.definition != correct_card.definition), None)
+            if other:
+                return False, f'{base}, but your term is correct for "{other.definition}"'
+        else:
+            other = next((c for c in self if c.definition == user_answer and c.term != correct_card.term), None)
+            if other:
+                return False, f'{base}, but your definition is correct for "{other.term}"'
+
         return False, f'{base}.'
 
     def get_unexported_cards(self) -> 'FlashcardSet':
