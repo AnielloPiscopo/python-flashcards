@@ -1,6 +1,6 @@
 from typing import Optional
 
-from utils import read_values
+from utils import read_values, get_base_obj_quantity
 from data_io import (
     read_user_answer,
     read_user_action,
@@ -9,7 +9,8 @@ from data_io import (
     write_flashcards,
     write_log,
     read_file_name,
-    read_flashcards
+    read_flashcards,
+    read_user_confirmation_exit
 )
 from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
 from models import FlashcardSet, Flashcard, FlashcardActions, FilePathParams
@@ -19,7 +20,7 @@ from ui import console
 __all__ = ['play']
 
 
-def _play_in_console(cards: FlashcardSet) -> None:
+def _play_in_console(cards: FlashcardSet, export_filename: Optional[str]) -> None:
     while True:
         try:
             user_action: FlashcardActions = read_user_action()
@@ -38,8 +39,8 @@ def _play_in_console(cards: FlashcardSet) -> None:
                 case FlashcardActions.EXPORT:
                     _export(cards)
                 case FlashcardActions.EXIT:
-                    _exit()
-                    break
+                    if _confirm_exit(cards, export_filename):
+                        break
                 case FlashcardActions.LOG:
                     _log()
                 case FlashcardActions.HARDEST_CARD:
@@ -88,11 +89,28 @@ def _remove(cards: FlashcardSet) -> None:
 
 def _ask(cards: FlashcardSet) -> None:
     times: int = read_num_of_cards()
+    correct_cards_count: int = 0
+    wrong_cards_count: int = 0
 
     for _ in range(times):
         card: Flashcard = cards.get_rnd_card()
         user_answer: str = read_user_answer(card.term)
-        console.print(cards.check_answer(card, user_answer))
+        checked_answer: tuple[bool, str] = cards.check_answer(card, user_answer)
+        is_correct: bool = checked_answer[0]
+        msg: str = checked_answer[1]
+
+        if is_correct:
+            correct_cards_count += 1
+        else:
+            wrong_cards_count += 1
+
+        console.print(msg)
+
+    msg: str = "You guessed " + get_base_obj_quantity(correct_cards_count,
+                                                      "card") + " and got wrong " + get_base_obj_quantity(
+        wrong_cards_count, "card") + "."
+
+    console.print(msg)
 
 
 def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
@@ -106,7 +124,7 @@ def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
     else:
         cards.merge(new_cards)
         new_cards_num: int = len(new_cards)
-        console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been loaded.")
+        console.print(get_base_obj_quantity(new_cards_num, "card") + " have been loaded.")
 
 
 def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
@@ -114,11 +132,25 @@ def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
         file_name = read_file_name()
 
     new_cards_num: int = write_flashcards(file_name, cards)
-    console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
+    console.print(get_base_obj_quantity(new_cards_num, "card") + " have been saved.")
 
 
-def _exit() -> None:
+def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
+    if export_filename is None:
+        unexported_cards: FlashcardSet = cards.get_unexported_cards()
+        unexported_cards_num: int = len(unexported_cards)
+
+        if unexported_cards:
+            return read_user_confirmation_exit(unexported_cards_num)
+        else:
+            return _exit()
+    else:
+        return _exit()
+
+
+def _exit() -> bool:
     console.print("Bye bye!")
+    return True
 
 
 def _log() -> None:
@@ -162,7 +194,7 @@ def play() -> None:
     if import_file_name:
         _import(cards, import_file_name)
 
-    _play_in_console(cards)
+    _play_in_console(cards, export_file_name)
 
     if export_file_name:
         _export(cards, export_file_name)
