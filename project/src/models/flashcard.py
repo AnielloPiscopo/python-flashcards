@@ -108,6 +108,10 @@ class FlashcardSet(list[Flashcard]):
     def get_unexported_cards(self) -> 'FlashcardSet':
         return FlashcardSet([c for c in self if not c.exported])
 
+    def change_exported_state(self) -> None:
+        for card in self:
+            card.exported = True
+
     @staticmethod
     def to_terms(cards: list['Flashcard']) -> list[str]:
         return [c.term for c in cards]
