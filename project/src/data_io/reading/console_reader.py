@@ -35,5 +35,5 @@ def read_card_to_remove_from_console() -> str:
 
 def read_user_confirmation_exit_from_console(unexported_cards_num: int) -> bool:
     return read_bool(f"There {
-    "is 1 unexported card" if unexported_cards_num else "are " + str(unexported_cards_num) + " cards"
+    "is 1 unexported card" if unexported_cards_num == 1 else "are " + str(unexported_cards_num) + " unexported cards"
     }.Do you want to proceed anyway?\n")
