@@ -10,7 +10,8 @@ from data_io import (
     write_log,
     read_file_name,
     read_flashcards,
-    read_user_confirmation_exit
+    read_user_confirmation_exit,
+    read_study_mode
 )
 from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
 from models import FlashcardSet, Flashcard, FlashcardActions, FilePathParams
@@ -88,14 +89,26 @@ def _remove(cards: FlashcardSet) -> None:
 
 
 def _ask(cards: FlashcardSet) -> None:
+    study_mode: str = read_study_mode()
+    reverse: bool
+
+    while True:
+        try:
+            reverse = _check_reverse_mode(study_mode)
+        except ValueError as e:
+            console.print(str(e) + "\nTry again")
+        else:
+            break
+
     times: int = read_num_of_cards()
     correct_cards_count: int = 0
     wrong_cards_count: int = 0
 
     for _ in range(times):
         card: Flashcard = cards.get_rnd_card()
-        user_answer: str = read_user_answer(card.term)
-        checked_answer: tuple[bool, str] = cards.check_answer(card, user_answer)
+        subject_to_guess: str = card.definition if reverse else card.term
+        user_answer: str = read_user_answer(subject_to_guess, reverse)
+        checked_answer: tuple[bool, str] = cards.check_answer(card, user_answer, reverse)
         is_correct: bool = checked_answer[0]
         msg: str = checked_answer[1]
 
@@ -198,3 +211,11 @@ def play() -> None:
 
     if export_file_name:
         _export(cards, export_file_name)
+
+def _check_reverse_mode(study_mode: str) -> bool:
+    if study_mode in ['by definition', 'definition']:
+        return False
+    elif study_mode in ['by term', 'term']:
+        return True
+    else:
+        raise ValueError("Invalid choice.")
