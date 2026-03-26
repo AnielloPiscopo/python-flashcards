@@ -154,7 +154,13 @@ def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
         unexported_cards_num: int = len(unexported_cards)
 
         if unexported_cards:
-            return read_user_confirmation_exit(unexported_cards_num)
+            while True:
+                try:
+                    user_confirmation_exit: bool = read_user_confirmation_exit(unexported_cards_num)
+                except ValueError as e:
+                    console.print(str(e) + "\nTry again")
+                else:
+                    return user_confirmation_exit
         else:
             return _exit()
     else:
