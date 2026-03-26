@@ -144,8 +144,9 @@ def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
     if file_name is None:
         file_name = read_file_name()
 
-    new_cards_num: int = write_flashcards(file_name, cards)
-    console.print(get_base_obj_quantity(new_cards_num, "card") + " have been saved.")
+    exported_cards_num: int = write_flashcards(file_name, cards)
+    cards.change_exported_state()
+    console.print(get_base_obj_quantity(exported_cards_num, "card") + " have been saved.")
 
 
 def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
