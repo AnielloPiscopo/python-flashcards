@@ -26,17 +26,20 @@ class Flashcard:
     term: str
     definition: str
     mistakes: int
+    exported: bool
 
-    def __init__(self, term: str, definition: str, mistakes: int = 0) -> None:
+    def __init__(self, term: str, definition: str, mistakes: int = 0, exported: bool = False) -> None:
         self.term = term
         self.definition = definition
         self.mistakes = mistakes
+        self.exported = exported
 
     def __str__(self) -> str:
         return f'"{self.term}": "{self.definition}"'
 
     def __repr__(self) -> str:
-        return f"Flashcard(term={self.term!r}, definition={self.definition!r}, mistakes={self.mistakes})"
+        return (f"Flashcard(term={self.term!r}, definition={self.definition!r}, "
+                f"mistakes={self.mistakes}, exported={self.exported})")
 
 
 class FlashcardSet(list[Flashcard]):
@@ -93,6 +96,9 @@ class FlashcardSet(list[Flashcard]):
         if other:
             return f'{base}, but your definition is correct for "{other.term}"'
         return f'{base}.'
+
+    def get_unexported_cards(self) -> 'FlashcardSet':
+        return FlashcardSet([c for c in self if not c.exported])
 
     @staticmethod
     def to_terms(cards: list['Flashcard']) -> list[str]:

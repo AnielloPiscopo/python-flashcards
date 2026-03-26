@@ -1,11 +1,14 @@
-from models import FlashcardActions, FlashcardSet
+from typing import Any
+
+from models import FlashcardActions, FlashcardSet, Flashcard
 
 from data_io.reading.console_reader import (
     read_num_of_cards_from_console,
     read_user_answer_from_console,
     read_user_action_from_console,
     read_card_to_remove_from_console,
-    read_file_name_from_console
+    read_file_name_from_console,
+    read_user_confirmation_exit_from_console
 )
 
 from data_io.reading.json_reader import read_flashcards_from_json
@@ -16,7 +19,8 @@ __all__ = [
     'read_user_action',
     'read_card_to_remove',
     'read_file_name',
-    'read_flashcards'
+    'read_flashcards',
+    'read_user_confirmation_exit',
 ]
 
 
@@ -29,7 +33,7 @@ def read_user_answer(term: str) -> str:
 
 
 def read_user_action() -> FlashcardActions:
-    return read_user_action_from_console()
+    return FlashcardActions(read_user_action_from_console())
 
 
 def read_card_to_remove() -> str:
@@ -39,4 +43,11 @@ def read_file_name() -> str:
     return read_file_name_from_console()
 
 def read_flashcards(file_name: str) -> FlashcardSet:
-    return read_flashcards_from_json(file_name)
+    data: Any = read_flashcards_from_json(file_name)
+    flashcards = FlashcardSet()
+    for item in data:
+        flashcards.add(Flashcard(item["term"], item["definition"], item["mistakes"]))
+    return flashcards
+
+def read_user_confirmation_exit(unexported_cards_num: int) -> bool:
+    return read_user_confirmation_exit_from_console(unexported_cards_num)
