@@ -26,17 +26,20 @@ class Flashcard:
     term: str
     definition: str
     mistakes: int
+    exported: bool
 
-    def __init__(self, term: str, definition: str, mistakes: int = 0) -> None:
+    def __init__(self, term: str, definition: str, mistakes: int = 0, exported: bool = False) -> None:
         self.term = term
         self.definition = definition
         self.mistakes = mistakes
+        self.exported = exported
 
     def __str__(self) -> str:
         return f'"{self.term}": "{self.definition}"'
 
     def __repr__(self) -> str:
-        return f"Flashcard(term={self.term!r}, definition={self.definition!r}, mistakes={self.mistakes})"
+        return (f"Flashcard(term={self.term!r}, definition={self.definition!r}, "
+                f"mistakes={self.mistakes}, exported={self.exported})")
 
 
 class FlashcardSet(list[Flashcard]):
@@ -82,17 +85,28 @@ class FlashcardSet(list[Flashcard]):
             else:
                 super().append(card)
 
-    def check_answer(self, correct_card: Flashcard, user_answer: str) -> str:
-        if correct_card.definition == user_answer:
-            return "Correct!"
+    def check_answer(self, correct_card: Flashcard, user_answer: str, reverse: bool = False) -> tuple[bool, str]:
+        correct = correct_card.term if reverse else correct_card.definition
+
+        if correct == user_answer:
+            return True, "Correct!"
 
         correct_card.mistakes += 1
-        base = f'Wrong. The right answer is "{correct_card.definition}"'
-        other = next((c for c in self if c.definition == user_answer and c.term != correct_card.term), None)
+        base = f'Wrong. The right answer is "{correct}"'
 
-        if other:
-            return f'{base}, but your definition is correct for "{other.term}"'
-        return f'{base}.'
+        if reverse:
+            other = next((c for c in self if c.term == user_answer and c.definition != correct_card.definition), None)
+            if other:
+                return False, f'{base}, but your term is correct for "{other.definition}"'
+        else:
+            other = next((c for c in self if c.definition == user_answer and c.term != correct_card.term), None)
+            if other:
+                return False, f'{base}, but your definition is correct for "{other.term}"'
+
+        return False, f'{base}.'
+
+    def get_unexported_cards(self) -> 'FlashcardSet':
+        return FlashcardSet([c for c in self if not c.exported])
 
     @staticmethod
     def to_terms(cards: list['Flashcard']) -> list[str]:
