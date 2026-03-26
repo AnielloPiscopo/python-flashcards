@@ -1,6 +1,6 @@
 from typing import Optional
 
-from utils import read_values
+from utils import read_values, get_base_obj_quantity
 from data_io import (
     read_user_answer,
     read_user_action,
@@ -89,11 +89,28 @@ def _remove(cards: FlashcardSet) -> None:
 
 def _ask(cards: FlashcardSet) -> None:
     times: int = read_num_of_cards()
+    correct_cards_count: int = 0
+    wrong_cards_count: int = 0
 
     for _ in range(times):
         card: Flashcard = cards.get_rnd_card()
         user_answer: str = read_user_answer(card.term)
-        console.print(cards.check_answer(card, user_answer))
+        checked_answer: tuple[bool, str] = cards.check_answer(card, user_answer)
+        is_correct: bool = checked_answer[0]
+        msg: str = checked_answer[1]
+
+        if is_correct:
+            correct_cards_count += 1
+        else:
+            wrong_cards_count += 1
+
+        console.print(msg)
+
+    msg: str = "You guessed " + get_base_obj_quantity(correct_cards_count,
+                                                      "card") + " and got wrong " + get_base_obj_quantity(
+        wrong_cards_count, "card") + "."
+
+    console.print(msg)
 
 
 def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
@@ -107,7 +124,7 @@ def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
     else:
         cards.merge(new_cards)
         new_cards_num: int = len(new_cards)
-        console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been loaded.")
+        console.print(get_base_obj_quantity(new_cards_num, "card") + " have been loaded.")
 
 
 def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
@@ -115,7 +132,7 @@ def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
         file_name = read_file_name()
 
     new_cards_num: int = write_flashcards(file_name, cards)
-    console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
+    console.print(get_base_obj_quantity(new_cards_num, "card") + " have been saved.")
 
 
 def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
