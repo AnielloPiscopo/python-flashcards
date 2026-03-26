@@ -9,7 +9,8 @@ from data_io import (
     write_flashcards,
     write_log,
     read_file_name,
-    read_flashcards
+    read_flashcards,
+    read_user_confirmation_exit
 )
 from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
 from models import FlashcardSet, Flashcard, FlashcardActions, FilePathParams
@@ -19,7 +20,7 @@ from ui import console
 __all__ = ['play']
 
 
-def _play_in_console(cards: FlashcardSet) -> None:
+def _play_in_console(cards: FlashcardSet, export_filename: Optional[str]) -> None:
     while True:
         try:
             user_action: FlashcardActions = read_user_action()
@@ -38,8 +39,8 @@ def _play_in_console(cards: FlashcardSet) -> None:
                 case FlashcardActions.EXPORT:
                     _export(cards)
                 case FlashcardActions.EXIT:
-                    _exit()
-                    break
+                    if _confirm_exit(cards, export_filename):
+                        break
                 case FlashcardActions.LOG:
                     _log()
                 case FlashcardActions.HARDEST_CARD:
@@ -117,8 +118,22 @@ def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
     console.print(f"{new_cards_num} {"card" if new_cards_num == 1 else "cards"} have been saved.")
 
 
-def _exit() -> None:
+def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
+    if export_filename is None:
+        unexported_cards: FlashcardSet = cards.get_unexported_cards()
+        unexported_cards_num: int = len(unexported_cards)
+
+        if unexported_cards:
+            return read_user_confirmation_exit(unexported_cards_num)
+        else:
+            return _exit()
+    else:
+        return _exit()
+
+
+def _exit() -> bool:
     console.print("Bye bye!")
+    return True
 
 
 def _log() -> None:
@@ -162,7 +177,7 @@ def play() -> None:
     if import_file_name:
         _import(cards, import_file_name)
 
-    _play_in_console(cards)
+    _play_in_console(cards, export_file_name)
 
     if export_file_name:
         _export(cards, export_file_name)
