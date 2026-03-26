@@ -4,7 +4,8 @@ from data_io.reading.reader import (
     read_user_action,
     read_card_to_remove,
     read_file_name,
-    read_flashcards
+    read_flashcards,
+    read_user_confirmation_exit
 )
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     'read_user_action',
     'read_card_to_remove',
     'read_file_name',
-    'read_flashcards'
+    'read_flashcards',
+    'read_user_confirmation_exit'
 ]
