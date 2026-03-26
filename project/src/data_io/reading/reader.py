@@ -13,6 +13,7 @@ from data_io.reading.console_reader import (
 )
 
 from data_io.reading.json_reader import read_flashcards_from_json
+from data_io.reading.csv_reader import read_flashcards_from_csv
 
 __all__ = [
     'read_num_of_cards',
@@ -45,7 +46,15 @@ def read_file_name() -> str:
     return read_file_name_from_console()
 
 def read_flashcards(file_name: str) -> FlashcardSet:
-    data: Any = read_flashcards_from_json(file_name)
+    data: Any
+
+    if file_name.endswith(".csv"):
+        data = read_flashcards_from_csv(file_name)
+    elif file_name.endswith(".json"):
+        data = read_flashcards_from_json(file_name)
+    else:
+        raise ValueError("Invalid file format")
+
     flashcards = FlashcardSet()
     for item in data:
         flashcards.add(Flashcard(item["term"], item["definition"], item["mistakes"]))
