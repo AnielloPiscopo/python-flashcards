@@ -77,7 +77,9 @@ class FlashcardSet(list[Flashcard]):
     def merge(self, other: 'FlashcardSet') -> None:
         for card in other:
             index = next((i for i, c in enumerate(self) if c.term == card.term), None)
+
             if index is not None:
+                card.exported = self[index].exported
                 self[index] = card
             else:
                 super().append(card)
