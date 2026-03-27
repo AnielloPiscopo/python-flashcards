@@ -1,20 +1,22 @@
 from typing import Optional
 
-from utils import read_values, get_base_obj_quantity
+from utils import read_values, get_base_obj_quantity, retry_on_error
 from data_io import (
     read_user_answer,
     read_user_action,
     read_card_to_remove,
-    read_num_of_cards,
+    read_num_of_cards_to_ask,
     write_flashcards,
     write_log,
     read_file_name,
     read_flashcards,
     read_user_confirmation_exit,
-    read_study_mode
+    read_study_mode,
+    read_repetition_quantity_mode,
+    read_card_repeatability
 )
 from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
-from models import FlashcardSet, Flashcard, FlashcardActions, FilePathParams
+from models import FlashcardSet, Flashcard, FlashcardActions, FlashcardCheck, FilePathParams
 from cli import parse_flashcards_params
 from ui import console
 
@@ -54,24 +56,10 @@ def _play_in_console(cards: FlashcardSet, export_filename: Optional[str]) -> Non
 
 def _add(cards: FlashcardSet) -> None:
     console.print(f"The card:")
-
-    while True:
-        try:
-            term = read_values()
-            cards.validate_term(term)
-            break
-        except FlashcardDuplicateError as e:
-            console.print(str(e))
+    term: str = retry_on_error(lambda: _get_term(cards), error=FlashcardDuplicateError, retry_msg="")
 
     console.print(f"The definition of the card:")
-
-    while True:
-        try:
-            definition = read_values()
-            cards.validate_definition(definition)
-            break
-        except FlashcardDuplicateError as e:
-            console.print(str(e))
+    definition: str = retry_on_error(lambda: _get_definition(cards), error=FlashcardDuplicateError, retry_msg="")
 
     cards.add(Flashcard(term, definition))
     console.print(f"The pair (\"{term}\":\"{definition}\") has been added.")
@@ -89,39 +77,21 @@ def _remove(cards: FlashcardSet) -> None:
 
 
 def _ask(cards: FlashcardSet) -> None:
-    study_mode: str = read_study_mode()
-    reverse: bool
-
-    while True:
-        try:
-            reverse = _check_reverse_mode(study_mode)
-        except ValueError as e:
-            console.print(str(e) + "\nTry again")
-        else:
-            break
-
-    times: int = read_num_of_cards()
-    correct_cards_count: int = 0
-    wrong_cards_count: int = 0
+    repetition_info: tuple[int, bool] = _get_times_of_repetition(cards)
+    times: int = repetition_info[0]
+    can_repeat: bool = repetition_info[1]
+    flashcards_check: FlashcardCheck = FlashcardCheck(cards, can_repeat)
+    reverse: bool = _get_mode()
 
     for _ in range(times):
-        card: Flashcard = cards.get_rnd_card()
+        card: Flashcard = flashcards_check.get_rnd_card()
         subject_to_guess: str = card.definition if reverse else card.term
         user_answer: str = read_user_answer(subject_to_guess, reverse)
-        checked_answer: tuple[bool, str] = cards.check_answer(card, user_answer, reverse)
-        is_correct: bool = checked_answer[0]
-        msg: str = checked_answer[1]
+        console.print(flashcards_check.play(user_answer, card, reverse))
 
-        if is_correct:
-            correct_cards_count += 1
-        else:
-            wrong_cards_count += 1
-
-        console.print(msg)
-
-    msg: str = "You guessed " + get_base_obj_quantity(correct_cards_count,
+    msg: str = "You guessed " + get_base_obj_quantity(flashcards_check.correct_cards_count,
                                                       "card") + " and got wrong " + get_base_obj_quantity(
-        wrong_cards_count, "card") + "."
+        flashcards_check.wrong_cards_count, "card") + "."
 
     console.print(msg)
 
@@ -155,22 +125,11 @@ def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
         unexported_cards_num: int = len(unexported_cards)
 
         if unexported_cards:
-            while True:
-                try:
-                    user_confirmation_exit: bool = read_user_confirmation_exit(unexported_cards_num)
-                except ValueError as e:
-                    console.print(str(e) + "\nTry again")
-                else:
-                    return user_confirmation_exit
+            return retry_on_error(lambda: read_user_confirmation_exit(unexported_cards_num))
         else:
             return _exit()
     else:
         return _exit()
-
-
-def _exit() -> bool:
-    console.print("Bye bye!")
-    return True
 
 
 def _log() -> None:
@@ -219,6 +178,19 @@ def play() -> None:
     if export_file_name:
         _export(cards, export_file_name)
 
+
+def _get_term(cards: FlashcardSet) -> str:
+    term = read_values()
+    cards.validate_term(term)
+    return term
+
+
+def _get_definition(cards: FlashcardSet) -> str:
+    definition = read_values()
+    cards.validate_definition(definition)
+    return definition
+
+
 def _check_reverse_mode(study_mode: str) -> bool:
     if study_mode in ['by definition', 'definition']:
         return False
@@ -226,3 +198,31 @@ def _check_reverse_mode(study_mode: str) -> bool:
         return True
     else:
         raise ValueError("Invalid choice.")
+
+
+def _get_times_of_repetition(cards: FlashcardSet) -> tuple[int, bool]:
+    repetition_quantity_mode: int = retry_on_error(lambda: read_repetition_quantity_mode())
+
+    times: int = 0
+    can_repeat: bool = True
+
+    match repetition_quantity_mode:
+        case 1:
+            times = len(cards)
+            can_repeat = False
+        case 2:
+            can_repeat = retry_on_error(lambda: read_card_repeatability())
+            times = retry_on_error(lambda: read_num_of_cards_to_ask())
+
+    return times, can_repeat
+
+
+def _get_mode() -> bool:
+    study_mode: str = read_study_mode()
+
+    return retry_on_error(lambda: _check_reverse_mode(study_mode))
+
+
+def _exit() -> bool:
+    console.print("Bye bye!")
+    return True
