@@ -7,7 +7,7 @@ from models import FilePathParams
 
 __all__ = ['parse_flashcards_params']
 
-class ParamsArgPars(Enum):
+class CliArgument(Enum):
     IMPORT = "--import_from"
     EXPORT = "--export_to"
 
@@ -29,12 +29,12 @@ def parse_flashcards_params() -> FilePathParams:
     parser: ArgumentParser = argparse.ArgumentParser()
 
     parser.add_argument(
-        ParamsArgPars.IMPORT.value,
+        CliArgument.IMPORT.value,
         type=str,
     )
 
     parser.add_argument(
-        ParamsArgPars.EXPORT.value,
+        CliArgument.EXPORT.value,
         type=str,
     )
 
