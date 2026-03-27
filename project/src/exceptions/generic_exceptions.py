@@ -23,3 +23,4 @@ class OutOfRangeError(ValueError):
             return f"Value {value} is out of range [{min_value}, {max_value}]"
         else:
             return f"Value {value} is less than minimum allowed ({min_value})"
+
