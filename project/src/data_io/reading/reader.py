@@ -60,8 +60,8 @@ def read_flashcards(file_name: str) -> FlashcardSet:
         raise ValueError("Invalid file format")
 
     flashcards = FlashcardSet()
-    for item in data:
-        flashcards.add(Flashcard(item["term"], item["definition"], item["mistakes"]))
+    for card_data in data:
+        flashcards.add(Flashcard(card_data["term"], card_data["definition"], card_data["mistakes"]))
     return flashcards
 
 def read_user_confirmation_exit(unexported_cards_num: int) -> bool:

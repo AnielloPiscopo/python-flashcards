@@ -3,7 +3,7 @@ from typing import Optional
 from utils.nums import str_to_int
 from ui import console
 
-__all__ = ["read_values", "read_int_num", "read_bool", "get_base_obj_quantity"]
+__all__ = ["read_values", "read_int_num", "read_bool", "pluralize"]
 
 def read_values(input_txt: str = "") -> str:
     return console.input(input_txt)
@@ -23,5 +23,5 @@ def read_bool(input_txt: str = "") -> bool:
     else:
         raise ValueError("Invalid choice.")
 
-def get_base_obj_quantity(count: int, obj: str) -> str:
+def pluralize(count: int, obj: str) -> str:
     return f"{count} {obj if count == 1 else obj + "s"}"
