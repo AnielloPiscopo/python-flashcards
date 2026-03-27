@@ -4,6 +4,8 @@ __all__ = ["OutOfRangeError"]
 
 
 class OutOfRangeError(ValueError):
+    """Raised when a numeric input falls outside the allowed range."""
+
     def __init__(
             self,
             value: int,

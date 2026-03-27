@@ -24,6 +24,7 @@ __all__ = ['play']
 
 
 def _play_in_console(cards: FlashcardSet, export_filename: Optional[str]) -> None:
+    """Main interaction loop. Reads user actions and dispatches to the appropriate handler."""
     while True:
         try:
             user_action: FlashcardActions = read_user_action()
@@ -55,6 +56,7 @@ def _play_in_console(cards: FlashcardSet, export_filename: Optional[str]) -> Non
 
 
 def _add(cards: FlashcardSet) -> None:
+    """Prompt the user for a term and definition, then add the new card to the set."""
     console.print(f"The card:")
     term: str = retry_on_error(lambda: _get_term(cards), error=FlashcardDuplicateError, retry_msg="")
 
@@ -66,6 +68,7 @@ def _add(cards: FlashcardSet) -> None:
 
 
 def _remove(cards: FlashcardSet) -> None:
+    """Prompt the user for a term and remove the matching card from the set."""
     card_term: str = read_card_to_remove()
 
     try:
@@ -77,6 +80,7 @@ def _remove(cards: FlashcardSet) -> None:
 
 
 def _ask(cards: FlashcardSet) -> None:
+    """Run a study session: ask the user to guess cards and show final score."""
     repetition_info: tuple[int, bool] = _get_times_of_repetition(cards)
     times: int = repetition_info[0]
     can_repeat: bool = repetition_info[1]
@@ -97,6 +101,7 @@ def _ask(cards: FlashcardSet) -> None:
 
 
 def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
+    """Load flashcards from a file and merge them into the current set."""
     if file_name is None:
         file_name = read_file_name()
 
@@ -111,6 +116,7 @@ def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
 
 
 def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
+    """Write all flashcards to a file and mark them as exported."""
     if file_name is None:
         file_name = read_file_name()
 
@@ -120,6 +126,7 @@ def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
 
 
 def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
+    """Ask for exit confirmation if there are unexported cards and no auto-export filename."""
     if export_filename is None:
         unexported_cards: FlashcardSet = cards.get_unexported_cards()
         unexported_cards_num: int = len(unexported_cards)
@@ -133,12 +140,14 @@ def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
 
 
 def _log() -> None:
+    """Save the current session log to a file."""
     file_name: str = read_file_name()
     write_log(file_name)
     console.print("The log has been saved.")
 
 
 def _show_card_with_most_mistakes(cards: FlashcardSet) -> None:
+    """Display the card(s) with the highest number of wrong answers."""
     try:
         most_difficult_cards: list[Flashcard] = cards.get_most_difficult()
     except FlashcardWithNoMistakesError as e:
@@ -160,11 +169,13 @@ def _show_card_with_most_mistakes(cards: FlashcardSet) -> None:
 
 
 def _reset_stats(cards: FlashcardSet) -> None:
+    """Reset the mistake counter for all cards."""
     cards.reset_mistakes()
     console.print("Card statistics have been reset.")
 
 
 def play() -> None:
+    """Entry point: parse CLI params, optionally import cards, run the session, optionally export."""
     cards: FlashcardSet = FlashcardSet()
     params: FilePathParams = parse_flashcards_params()
     import_file_name: str = params.import_file_name
@@ -180,18 +191,21 @@ def play() -> None:
 
 
 def _get_term(cards: FlashcardSet) -> str:
+    """Read a term from the user and validate it against the existing set."""
     term = read_values()
     cards.validate_term(term)
     return term
 
 
 def _get_definition(cards: FlashcardSet) -> str:
+    """Read a definition from the user and validate it against the existing set."""
     definition = read_values()
     cards.validate_definition(definition)
     return definition
 
 
 def _parse_study_mode(study_mode: str) -> bool:
+    """Convert a study mode string to a reverse flag. Returns True if guessing by term."""
     if study_mode in ['by definition', 'definition']:
         return False
     elif study_mode in ['by term', 'term']:
@@ -201,6 +215,7 @@ def _parse_study_mode(study_mode: str) -> bool:
 
 
 def _get_times_of_repetition(cards: FlashcardSet) -> tuple[int, bool]:
+    """Ask the user how many cards to study and whether to allow card repetition."""
     repetition_quantity_mode: int = retry_on_error(lambda: read_repetition_quantity_mode())
 
     times: int = 0
@@ -208,6 +223,7 @@ def _get_times_of_repetition(cards: FlashcardSet) -> tuple[int, bool]:
 
     match repetition_quantity_mode:
         case 1:
+            # Study all cards once, no repetition
             times = len(cards)
             can_repeat = False
         case 2:
@@ -218,11 +234,13 @@ def _get_times_of_repetition(cards: FlashcardSet) -> tuple[int, bool]:
 
 
 def _get_mode() -> bool:
+    """Ask the user for the study mode and return True if reverse (guess by term)."""
     study_mode: str = read_study_mode()
 
     return retry_on_error(lambda: _parse_study_mode(study_mode))
 
 
 def _exit() -> bool:
+    """Print goodbye message and signal the main loop to exit."""
     console.print("Bye bye!")
     return True

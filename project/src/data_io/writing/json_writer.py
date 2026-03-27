@@ -6,6 +6,7 @@ __all__ = ['write_flashcards_to_json']
 
 
 def write_flashcards_to_json(file_name: str, flashcards: FlashcardSet) -> int:
+    """Write flashcards to a JSON file in FLASHCARDS_OUTPUT_DIR. Returns the number of cards written."""
     data: list[dict[str, str | int]] = \
         [c.to_dict() for c in flashcards]
     FLASHCARDS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

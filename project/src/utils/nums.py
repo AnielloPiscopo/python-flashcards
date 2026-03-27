@@ -11,6 +11,14 @@ def str_to_int(
         max_num: Optional[int] = None,
         inclusive: bool = True,
 ) -> int:
+    """Parse a string to int and validate it falls within the allowed range.
+
+    Args:
+        s: The string to parse.
+        min_num: Minimum allowed value.
+        max_num: Maximum allowed value (no upper bound if None).
+        inclusive: If True, min/max are included in the valid range.
+    """
     try:
         value = int(s)
     except ValueError:
