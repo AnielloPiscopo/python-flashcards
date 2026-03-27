@@ -1,10 +1,10 @@
-from data_io.paths import OUTPUT_DIR
+from data_io.paths import LOG_OUTPUT_DIR
 from ui import console
 
 __all__ = ["write_log_to_txt"]
 
 def write_log_to_txt(file_name: str) -> None:
-    (OUTPUT_DIR / "log").mkdir(parents=True, exist_ok=True)
+    LOG_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    with open(OUTPUT_DIR / "log" / file_name, "w", encoding="utf-8") as f:
+    with open(LOG_OUTPUT_DIR / file_name, "w", encoding="utf-8") as f:
         f.write(console.get_log())

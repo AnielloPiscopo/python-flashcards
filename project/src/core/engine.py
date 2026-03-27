@@ -1,6 +1,6 @@
 from typing import Optional
 
-from utils import read_values, get_base_obj_quantity, retry_on_error
+from utils import read_values, pluralize, retry_on_error
 from data_io import (
     read_user_answer,
     read_user_action,
@@ -89,8 +89,8 @@ def _ask(cards: FlashcardSet) -> None:
         user_answer: str = read_user_answer(subject_to_guess, reverse)
         console.print(flashcards_check.play(user_answer, card, reverse))
 
-    msg: str = "You guessed " + get_base_obj_quantity(flashcards_check.correct_cards_count,
-                                                      "card") + " and got wrong " + get_base_obj_quantity(
+    msg: str = "You guessed " + pluralize(flashcards_check.correct_cards_count,
+                                                      "card") + " and got wrong " + pluralize(
         flashcards_check.wrong_cards_count, "card") + "."
 
     console.print(msg)
@@ -107,7 +107,7 @@ def _import(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
     else:
         cards.merge(new_cards)
         new_cards_num: int = len(new_cards)
-        console.print(get_base_obj_quantity(new_cards_num, "card") + " have been loaded.")
+        console.print(pluralize(new_cards_num, "card") + " have been loaded.")
 
 
 def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
@@ -116,7 +116,7 @@ def _export(cards: FlashcardSet, file_name: Optional[str] = None) -> None:
 
     exported_cards_num: int = write_flashcards(file_name, cards)
     cards.change_exported_state()
-    console.print(get_base_obj_quantity(exported_cards_num, "card") + " have been saved.")
+    console.print(pluralize(exported_cards_num, "card") + " have been saved.")
 
 
 def _confirm_exit(cards: FlashcardSet, export_filename: Optional[str]) -> bool:
@@ -191,7 +191,7 @@ def _get_definition(cards: FlashcardSet) -> str:
     return definition
 
 
-def _check_reverse_mode(study_mode: str) -> bool:
+def _parse_study_mode(study_mode: str) -> bool:
     if study_mode in ['by definition', 'definition']:
         return False
     elif study_mode in ['by term', 'term']:
@@ -220,7 +220,7 @@ def _get_times_of_repetition(cards: FlashcardSet) -> tuple[int, bool]:
 def _get_mode() -> bool:
     study_mode: str = read_study_mode()
 
-    return retry_on_error(lambda: _check_reverse_mode(study_mode))
+    return retry_on_error(lambda: _parse_study_mode(study_mode))
 
 
 def _exit() -> bool:

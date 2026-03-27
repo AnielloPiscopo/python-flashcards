@@ -34,6 +34,9 @@ class Flashcard:
         self.mistakes = mistakes
         self.exported = exported
 
+    def to_dict(self) -> dict[str, str | int]:
+        return {"term": self.term, "definition": self.definition, "mistakes": self.mistakes}
+
     def __str__(self) -> str:
         return f'"{self.term}": "{self.definition}"'
 
@@ -77,7 +80,9 @@ class FlashcardSet(list[Flashcard]):
     def merge(self, other: 'FlashcardSet') -> None:
         for card in other:
             index = next((i for i, c in enumerate(self) if c.term == card.term), None)
+
             if index is not None:
+                card.exported = self[index].exported
                 self[index] = card
             else:
                 super().append(card)
@@ -88,10 +93,6 @@ class FlashcardSet(list[Flashcard]):
     def change_exported_state(self) -> None:
         for card in self:
             card.exported = True
-
-    @staticmethod
-    def to_terms(cards: list['Flashcard']) -> list[str]:
-        return [c.term for c in cards]
 
     def __str__(self) -> str:
         return f"FlashcardSet({len(self)} cards)"
