@@ -3,7 +3,7 @@ from random import choice
 
 from exceptions import FlashcardDuplicateError, FlashcardNotFoundError, FlashcardWithNoMistakesError
 
-__all__ = ['Flashcard', 'FlashcardSet', 'FlashcardActions']
+__all__ = ['Flashcard', 'FlashcardSet', 'FlashcardActions', 'FlashcardCheck']
 
 
 class FlashcardActions(Enum):
@@ -54,9 +54,6 @@ class FlashcardSet(list[Flashcard]):
             raise FlashcardNotFoundError(term)
         super().remove(card)
 
-    def get_rnd_card(self) -> Flashcard:
-        return choice(self)
-
     def get_most_difficult(self) -> list[Flashcard]:
         if not self:
             raise FlashcardWithNoMistakesError()
@@ -85,26 +82,6 @@ class FlashcardSet(list[Flashcard]):
             else:
                 super().append(card)
 
-    def check_answer(self, correct_card: Flashcard, user_answer: str, reverse: bool = False) -> tuple[bool, str]:
-        correct = correct_card.term if reverse else correct_card.definition
-
-        if correct == user_answer:
-            return True, "Correct!"
-
-        correct_card.mistakes += 1
-        base = f'Wrong. The right answer is "{correct}"'
-
-        if reverse:
-            other = next((c for c in self if c.term == user_answer and c.definition != correct_card.definition), None)
-            if other:
-                return False, f'{base}, but your term is correct for "{other.definition}"'
-        else:
-            other = next((c for c in self if c.definition == user_answer and c.term != correct_card.term), None)
-            if other:
-                return False, f'{base}, but your definition is correct for "{other.term}"'
-
-        return False, f'{base}.'
-
     def get_unexported_cards(self) -> 'FlashcardSet':
         return FlashcardSet([c for c in self if not c.exported])
 
@@ -121,3 +98,55 @@ class FlashcardSet(list[Flashcard]):
 
     def __repr__(self) -> str:
         return f"FlashcardSet({list.__repr__(self)})"
+
+
+class FlashcardCheck:
+    cards: FlashcardSet
+    can_repeat_card: bool
+    correct_cards_count: int
+    wrong_cards_count: int
+
+    def __init__(self, cards: FlashcardSet, can_repeat_card: bool = True):
+        self.cards: FlashcardSet = cards
+        self.can_repeat_card = can_repeat_card
+        self.correct_cards_count = 0
+        self.wrong_cards_count = 0
+
+    def _check_answer(self, correct_card: Flashcard, user_answer: str, reverse: bool = False) -> tuple[bool, str]:
+        correct = correct_card.term if reverse else correct_card.definition
+
+        if correct == user_answer:
+            return True, "Correct!"
+
+        correct_card.mistakes += 1
+        base = f'Wrong. The right answer is "{correct}"'
+
+        if reverse:
+            other = next((c for c in self.cards if c.term == user_answer and c.definition != correct_card.definition),
+                         None)
+            if other:
+                return False, f'{base}, but your term is correct for "{other.definition}"'
+        else:
+            other = next((c for c in self.cards if c.definition == user_answer and c.term != correct_card.term), None)
+            if other:
+                return False, f'{base}, but your definition is correct for "{other.term}"'
+
+        if not self.can_repeat_card:
+            self.cards.remove(correct_card.term)
+
+        return False, f'{base}.'
+
+    def get_rnd_card(self) -> Flashcard:
+        return choice(self.cards)
+
+    def play(self, user_answer: str, card_to_guess: Flashcard, reverse: bool) -> str:
+        checked_answer: tuple[bool, str] = self._check_answer(card_to_guess, user_answer, reverse)
+        is_correct: bool = checked_answer[0]
+        msg: str = checked_answer[1]
+
+        if is_correct:
+            self.correct_cards_count += 1
+        else:
+            self.wrong_cards_count += 1
+
+        return msg
