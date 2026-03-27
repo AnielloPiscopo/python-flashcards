@@ -8,3 +8,10 @@ where = ["src"]
 [project]
 name = "flashcards"
 version = "0.1.0"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+pythonpath = ["src"]
