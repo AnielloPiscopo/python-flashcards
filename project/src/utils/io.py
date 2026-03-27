@@ -6,15 +6,18 @@ from ui import console
 __all__ = ["read_values", "read_int_num", "read_bool", "pluralize"]
 
 def read_values(input_txt: str = "") -> str:
+    """Read a stripped string from the console."""
     return console.input(input_txt)
 
 
 def read_int_num(input_txt: str = "", min_num: int = 1,
                  max_num: Optional[int] = None,
                  inclusive: bool = True, ) -> int:
+    """Read an integer from the console within the given range."""
     return str_to_int(read_values(input_txt), min_num, max_num, inclusive)
 
 def read_bool(input_txt: str = "") -> bool:
+    """Read a boolean from the console. Accepts yes/no/true/false/y/n (case-insensitive)."""
     value: str = read_values(input_txt).lower()
     if value in ["true", "yes", "y"]:
         return True
@@ -24,4 +27,5 @@ def read_bool(input_txt: str = "") -> bool:
         raise ValueError("Invalid choice.")
 
 def pluralize(count: int, obj: str) -> str:
+    """Return a formatted string like '1 card' or '3 cards'."""
     return f"{count} {obj if count == 1 else obj + "s"}"
